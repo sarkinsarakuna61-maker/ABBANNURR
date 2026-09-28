@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ABBANNURR</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b0f14;
+      color: white;
+    }
+
+    .app {
+      max-width: 520px;
+      margin: auto;
+      padding: 20px 16px 90px;
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      margin: 15px 0 5px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #8b95a5;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: #131a23;
+      border: 1px solid #202b38;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .balance {
+      text-align: center;
+    }
+
+    .balance-label {
+      color: #8b95a5;
+      font-size: 14px;
+    }
+
+    .coins {
+      font-size: 42px;
+      font-weight: 900;
+      margin: 8px 0;
+    }
+
+    .rate {
+      color: #57e389;
+      font-weight: bold;
+    }
+
+    .timer {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      margin: 18px 0;
+    }
+
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 15px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #2ea6ff;
+      color: white;
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .green {
+      background: #21c46b;
+    }
+
+    .task {
+      border: 1px solid #263342;
+      border-radius: 14px;
+      padding: 15px;
+      margin-top: 12px;
+    }
+
+    .task-title {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .task-description {
+      color: #8b95a5;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .task button {
+      padding: 11px;
+      font-size: 14px;
+    }
+
+    .nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #111720;
+      border-top: 1px solid #202b38;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      z-index: 10;
+    }
+
+    .nav button {
+      width: auto;
+      min-width: 90px;
+      padding: 10px 14px;
+      background: #1b2531;
+      font-size: 13px;
+    }
+
+    .nav button.active {
+      background: #2ea6ff;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #202b38;
+    }
+
+    .stat:last-child {
+      border-bottom: 0;
+    }
+
+    .muted {
+      color: #8b95a5;
+    }
+
+    .ref-link {
+      word-break: break-all;
+      background: #0b0f14;
+      padding: 12px;
+      border-radius: 10px;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+
+    .message {
+      text-align: center;
+      margin: 10px 0;
+      color: #57e389;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="logo">ABBANNURR</div>
+  <div class="subtitle">Earn • Mine • Grow</div>
+
+  <!-- HOME -->
+  <div id="home" class="page active">
+
+    <div class="card balance">
+      <div class="balance-label">ABBANNURR POINTS</div>
+      <div id="coins" class="coins">0</div>
+      <div class="rate">+<span id="rate">1</span> / sec</div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Mining countdown</div>
+      <div id="timer" class="timer">24:00:00</div>
+      <button id="claimBtn" disabled>Mining...</button>
+    </div>
+
+    <div class="card">
+      <div class="stat">
+        <span>Daily Streak</span>
+        <strong id="streak">0</strong>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <button id="dailyBtn" class="green">
+        Claim Daily +100
+      </button>
+
+      <div id="dailyMessage" class="message"></div>
+    </div>
+
+  </div>
+
+  <!-- TASKS -->
+  <div id="tasksPage" class="page">
+
+    <div class="card">
+      <h2>Tasks</h2>
+      <div class="muted">Complete tasks and earn points.</div>
+
+      <div id="tasksList"></div>
+    </div>
+
+  </div>
+
+  <!-- FRIENDS -->
+  <div id="friendsPage" class="page">
+
+    <div class="card">
+      <h2>Friends</h2>
+
+      <div class="stat">
+        <span>Friends invited</span>
+        <strong id="refCount">0</strong>
+      </div>
+
+      <div class="stat">
+        <span>Reward per friend</span>
+        <strong>+100</strong>
+      </div>
+
+      <div class="ref-link" id="refLink">
+        Loading...
+      </div>
+
+      <button id="copyBtn">
+        Copy Referral Link
+      </button>
+
+      <div id="refMessage" class="message"></div>
+    </div>
+
+  </div>
+
+  <!-- PROFILE -->
+  <div id="profilePage" class="page">
+
+    <div class="card">
+      <h2>Profile</h2>
+
+      <div class="stat">
+        <span>Username</span>
+        <strong id="username">User</strong>
+      </div>
+
+      <div class="stat">
+        <span>Telegram ID</span>
+        <strong id="telegramId">-</strong>
+      </div>
+
+      <div class="stat">
+        <span>Points</span>
+        <strong id="profileCoins">0</strong>
+      </div>
+
+      <div class="stat">
+        <span>Wallet</span>
+        <strong id="wallet">Not connected</strong>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- NAVIGATION -->
+<div class="nav">
+
+  <button class="active" data-page="home">
+    Home
+  </button>
+
+  <button data-page="tasksPage">
+    Tasks
+  </button>
+
+  <button data-page="friendsPage">
+    Friends
+  </button>
+
+  <button data-page="profilePage">
+    Profile
+  </button>
+
+</div>
+
+<script>
+
+const tg = window.Telegram?.WebApp;
+
+if (tg) {
+  tg.ready();
+  tg.expand();
+}
+
+const API = window.location.origin;
+
+const tgUser = tg?.initDataUnsafe?.user;
+
+let telegramId = tgUser?.id || null;
+let username =
+  tgUser?.username ||
+  tgUser?.first_name ||
+  "Telegram User";
+
+const startParam =
+  tg?.initDataUnsafe?.start_param || "";
+
+const referrerId =
+  startParam.startsWith("ref_")
+    ? startParam.slice(4)
+    : null;
+
+let currentUser = null;
+let remaining = 86400;
+
+const coinsEl = document.getElementById("coins");
+const rateEl = document.getElementById("rate");
+const timerEl = document.getElementById("timer");
+const claimBtn = document.getElementById("claimBtn");
+const streakEl = document.getElementById("streak");
+const refCountEl = document.getElementById("refCount");
+
+function formatTime(seconds) {
+
+  seconds = Math.max(0, Math.floor(seconds));
+
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+
+  return (
+    String(h).padStart(2, "0") + ":" +
+    String(m).padStart(2, "0") + ":" +
+    String(s).padStart(2, "0")
+  );
+}
+
+function updateUI(data) {
+
+  currentUser = data;
+
+  coinsEl.textContent =
+    Number(data.coins || 0).toLocaleString();
+
+  rateEl.textContent =
+    data.mining_rate || 1;
+
+  streakEl.textContent =
+    data.streak || 0;
+
+  refCountEl.textContent =
+    data.referral_count || 0;
+
+  remaining =
+    Number(data.remaining || 0);
+
+  claimBtn.disabled =
+    !data.ready;
+
+  claimBtn.textContent =
+    data.ready
+      ? "Claim Mining"
+      : "Mining...";
+
+  document.getElementById("profileCoins").textContent =
+    Number(data.coins || 0).toLocaleString();
+
+  document.getElementById("username").textContent =
+    data.username || username;
+
+  document.getElementById("telegramId").textContent =
+    data.telegram_id || telegramId;
+
+  document.getElementById("wallet").textContent =
+    data.wallet_address || "Not connected";
+}
+
+async function loadUser() {
+
+  if (!telegramId) {
+    coinsEl.textContent = "Telegram only";
+    return;
+  }
+
+  try {
+
+    const response = await fetch(
+      API + "/api/user",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          telegram_id: telegramId,
+          username: username,
+          referrer_id: referrerId
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "Failed to load user"
+      );
+    }
+
+    updateUI(data);
+
+    loadReferral();
+
+  } catch (error) {
+
+    console.error(error);
+
+    coinsEl.textContent = "0";
+  }
+}
+
+async function claimMining() {
+
+  if (!telegramId) return;
+
+  claimBtn.disabled = true;
+
+  try {
+
+    const response = await fetch(
+      API + "/api/mine/claim",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          telegram_id: telegramId
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.error || "Mining not ready");
+      return;
+    }
+
+    updateUI(data);
+
+  } catch (error) {
+
+    alert("Connection error");
+
+  } finally {
+
+    claimBtn.disabled =
+      !currentUser?.ready;
+  }
+}
+
+async function claimDaily() {
+
+  if (!telegramId) return;
+
+  const btn =
+    document.getElementById("dailyBtn");
+
+  const message =
+    document.getElementById("dailyMessage");
+
+  btn.disabled = true;
+
+  try {
+
+    const response = await fetch(
+      API + "/api/daily",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          telegram_id: telegramId
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      message.textContent =
+        data.error || "Not available";
+      return;
+    }
+
+    message.textContent =
+      "+" + data.reward +
+      " points claimed! 🔥";
+
+    await loadUser();
+
+  } catch (error) {
+
+    message.textContent =
+      "Connection error";
+
+  } finally {
+
+    btn.disabled = false;
+  }
+}
+
+async function loadTasks() {
+
+  if (!telegramId) return;
+
+  const list =
+    document.getElementById("tasksList");
+
+  try {
+
+    const response = await fetch(
+      API + "/api/tasks",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          telegram_id: telegramId
+        })
+      }
+    );
+
+    const tasks = await response.json();
+
+    list.innerHTML = "";
+
+    tasks.forEach(task => {
+
+      const div =
+        document.createElement("div");
+
+      div.className = "task";
+
+      div.innerHTML = `
+        <div class="task-title">
+          ${task.title}
+        </div>
+
+        <div class="task-description">
+          ${task.description}
+        </div>
+
+        <button
+          ${task.claimed ? "disabled" : ""}
+          onclick="claimTask(${task.id}, '${task.url}')"
+        >
+          ${
+            task.claimed
+              ? "Completed ✓"
+              : "Claim +" + task.reward
+          }
+        </button>
+      `;
+
+      list.appendChild(div);
+    });
+
+  } catch (error) {
+
+    list.innerHTML =
+      "<div class='muted'>Unable to load tasks.</div>";
+  }
+}
+
+async function claimTask(taskId, url) {
+
+  if (url) {
+
+    if (tg) {
+      tg.openTelegramLink(url);
+    } else {
+      window.open(url, "_blank");
+    }
+
+  }
+
+  setTimeout(async () => {
+
+    const response = await fetch(
+      API + "/api/task/claim",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          telegram_id: telegramId,
+          task_id: taskId
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.error || "Task failed");
+      return;
+    }
+
+    alert(
+      "+" + data.reward +
+      " ABBANNURR Points"
+    );
+
+    await loadUser();
+    await loadTasks();
+
+  }, 800);
+}
+
+async function loadReferral() {
+
+  if (!telegramId) return;
+
+  try {
+
+    const response = await fetch(
+      API + "/api/referral",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          telegram_id: telegramId
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    document.getElementById("refLink")
+      .textContent =
+      data.referral_link || "Unavailable";
+
+    refCountEl.textContent =
+      data.referral_count || 0;
+
+  } catch (error) {
+
+    document.getElementById("refLink")
+      .textContent =
+      "Unable to load referral link.";
+  }
+}
+
+document.getElementById("copyBtn")
+  .addEventListener("click", async () => {
+
+    const link =
+      document.getElementById("refLink")
+        .textContent;
+
+    const message =
+      document.getElementById("refMessage");
+
+    try {
+
+      await navigator.clipboard.writeText(link);
+
+      message.textContent =
+        "Referral link copied ✓";
+
+    } catch {
+
+      message.textContent =
+        "Copy failed. Hold the link to copy it.";
+    }
+
+  });
+
+claimBtn.addEventListener(
+  "click",
+  claimMining
+);
+
+document.getElementById("dailyBtn")
+  .addEventListener(
+    "click",
+    claimDaily
+  );
+
+document.querySelectorAll(".nav button")
+  .forEach(button => {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        document
+          .querySelectorAll(".nav button")
+          .forEach(btn =>
+            btn.classList.remove("active")
+          );
+
+        button.classList.add("active");
+
+        document
+          .querySelectorAll(".page")
+          .forEach(page =>
+            page.classList.remove("active")
+          );
+
+        document
+          .getElementById(
+            button.dataset.page
+          )
+          .classList.add("active");
+
+        if (
+          button.dataset.page ===
+          "tasksPage"
+        ) {
+          loadTasks();
+        }
+
+        if (
+          button.dataset.page ===
+          "friendsPage"
+        ) {
+          loadReferral();
+        }
+
+      }
+    );
+
+  });
+
+setInterval(() => {
+
+  if (remaining > 0) {
+    remaining--;
+  }
+
+  timerEl.textContent =
+    formatTime(remaining);
+
+  if (
+    remaining <= 0 &&
+    currentUser
+  ) {
+    claimBtn.disabled = false;
+    claimBtn.textContent =
+      "Claim Mining";
+  }
+
+}, 1000);
+
+loadUser();
+
+</script>
+
+</body>
+        </html>
